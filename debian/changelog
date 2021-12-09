@@ -1,0 +1,67 @@
+dnsperf (2.9.0-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.9.0.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Thu, 09 Dec 2021 21:45:15 +0100
+
+dnsperf (2.8.0-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.8.0.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Sun, 07 Nov 2021 14:41:43 +0100
+
+dnsperf (2.7.1-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.7.1.
+  * Updating to standards version 4.6.0.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Fri, 08 Oct 2021 10:44:06 +0200
+
+dnsperf (2.7.0-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.7.0.
+  * Adding newly required nghttp2 to build-depends.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Thu, 12 Aug 2021 11:19:24 +0200
+
+dnsperf (2.6.0-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.6.0.
+  * Adding forgotten changelog entry for previous upload.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Sat, 17 Jul 2021 09:17:21 +0200
+
+dnsperf (2.5.2-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.5.2.
+  * Repeating sections in package block in control for consistency.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Wed, 31 Mar 2021 09:38:15 +0200
+
+dnsperf (2.5.0+debian-1) sid; urgency=medium
+
+  * Uploading to sid.
+  * Merging upstream version 2.5.0+debian.
+  * Adding new build-depends to libck-dev.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Fri, 12 Mar 2021 22:08:36 +0100
+
+dnsperf (2.4.2+debian-2) sid; urgency=medium
+
+  * Uploading to sid.
+  * Adding watch file.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Tue, 09 Mar 2021 11:31:48 +0100
+
+dnsperf (2.4.2+debian-1) sid; urgency=medium
+
+  * Initial upload to sid (Closes: #984535).
+  * Rebuilding upstream tarball without debian directory.
+
+ -- Daniel Baumann <daniel.baumann@progress-linux.org>  Thu, 04 Mar 2021 19:40:24 +0100

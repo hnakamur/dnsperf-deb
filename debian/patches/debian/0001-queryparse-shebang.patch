@@ -1,0 +1,12 @@
+Author: Daniel Baumann <daniel.baumann@progress-linux.org>
+Description: Correcting Python shebang.
+
+diff -Naurp dnsperf.orig/contrib/queryparse/queryparse dnsperf/contrib/queryparse/queryparse
+--- dnsperf.orig/contrib/queryparse/queryparse
++++ dnsperf/contrib/queryparse/queryparse
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python
++#!/usr/bin/python3
+ #
+ # Copyright 2019-2021 OARC, Inc.
+ # Copyright 2017-2018 Akamai Technologies

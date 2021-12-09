@@ -1,0 +1,2 @@
+# Suggests rather than to Depends to python3 just for the queryparse contrib script.
+dnsperf: python3-script-but-no-python3-dep usr/bin/pcap-queryparse #!/usr/bin/python3

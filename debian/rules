@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh ${@}
+
+execute_after_dh_auto_install:
+	# queryparse
+	cp contrib/queryparse/queryparse debian/dnsperf/usr/bin/pcap-queryparse
+	cp contrib/queryparse/queryparse.1 debian/dnsperf/usr/share/man/man1/pcap-queryparse.1
+	cp contrib/queryparse/USAGE debian/dnsperf/usr/share/doc/dnsperf/pcap-queryparse.USAGE
+
+	# Removing useless files
+	rm -f debian/dnsperf/usr/share/doc/dnsperf/LICENSE
+	rm -f debian/dnsperf/usr/share/doc/dnsperf/README.md

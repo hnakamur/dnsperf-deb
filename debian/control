@@ -1,0 +1,34 @@
+Source: dnsperf
+Section: utils
+Priority: optional
+Maintainer: Daniel Baumann <daniel.baumann@progress-linux.org>
+Build-Depends:
+ debhelper-compat (= 13),
+ libck-dev,
+ libldns-dev,
+ libnghttp2-dev,
+ libssl-dev,
+ pkg-config,
+Rules-Requires-Root: no
+Standards-Version: 4.6.0
+Homepage: https://www.dns-oarc.net/tools/dnsperf
+Vcs-Browser: https://git.progress-linux.org/users/daniel.baumann/debian/packages/dnsperf
+Vcs-Git: https://git.progress-linux.org/users/daniel.baumann/debian/packages/dnsperf
+
+Package: dnsperf
+Section: utils
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Suggests:
+ python3-dnspython,
+ python3-pcapy,
+Description: DNS Performance Testing Tool
+ dnsperf gathers accurate latency and throughput metrics for the Domain Name
+ Service (DNS). Network operators can benchmark their naming and addressing
+ infrastructure. dnsperf "self-paces" the DNS query load to simulate network
+ conditions.
+ .
+ resperf systematically increases the query rate and monitors the response
+ rate to simulate caching DNS services.
