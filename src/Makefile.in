@@ -14,7 +14,7 @@
 
 @SET_MAKE@
 
-# Copyright 2019-2022 OARC, Inc.
+# Copyright 2019-2023 OARC, Inc.
 # Copyright 2017-2018 Akamai Technologies
 # Copyright 2006-2016 Nominum, Inc.
 # All rights reserved.
@@ -107,6 +107,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = dnsperf$(EXEEXT) resperf$(EXEEXT)
+@HAVE_STDATOMIC_TRUE@am__append_1 = ext/hg64.c
+@HAVE_STDATOMIC_TRUE@am__append_2 = ext/hg64.h
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_append_flag.m4 \
@@ -127,14 +129,23 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(man1dir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__objects_1 = datafile.$(OBJEXT) dns.$(OBJEXT) log.$(OBJEXT) \
+am__dnsperf_SOURCES_DIST = datafile.c dns.c log.c net.c opt.c os.c \
+	strerror.c qtype.c edns.c tsig.c net_udp.c net_tcp.c net_dot.c \
+	net_doh.c ext/parse_uri.c ext/hg64.c dnsperf.c
+am__dirstamp = $(am__leading_dot)dirstamp
+@HAVE_STDATOMIC_TRUE@am__objects_1 = ext/hg64.$(OBJEXT)
+am__objects_2 = datafile.$(OBJEXT) dns.$(OBJEXT) log.$(OBJEXT) \
 	net.$(OBJEXT) opt.$(OBJEXT) os.$(OBJEXT) strerror.$(OBJEXT) \
 	qtype.$(OBJEXT) edns.$(OBJEXT) tsig.$(OBJEXT) \
 	net_udp.$(OBJEXT) net_tcp.$(OBJEXT) net_dot.$(OBJEXT) \
-	net_doh.$(OBJEXT) parse_uri.$(OBJEXT)
-am_dnsperf_OBJECTS = $(am__objects_1) dnsperf.$(OBJEXT)
-am__objects_2 =
-dist_dnsperf_OBJECTS = $(am__objects_2)
+	net_doh.$(OBJEXT) ext/parse_uri.$(OBJEXT) $(am__objects_1)
+am_dnsperf_OBJECTS = $(am__objects_2) dnsperf.$(OBJEXT)
+am__dist_dnsperf_SOURCES_DIST = datafile.h dns.h log.h net.h opt.h \
+	os.h util.h strerror.h list.h result.h buffer.h qtype.h edns.h \
+	tsig.h ext/parse_uri.h ext/hg64.h
+am__objects_3 =
+am__objects_4 = $(am__objects_3)
+dist_dnsperf_OBJECTS = $(am__objects_4)
 dnsperf_OBJECTS = $(am_dnsperf_OBJECTS) $(dist_dnsperf_OBJECTS)
 am__DEPENDENCIES_1 =
 dnsperf_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -144,8 +155,14 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_resperf_OBJECTS = $(am__objects_1) resperf.$(OBJEXT)
-dist_resperf_OBJECTS = $(am__objects_2)
+am__resperf_SOURCES_DIST = datafile.c dns.c log.c net.c opt.c os.c \
+	strerror.c qtype.c edns.c tsig.c net_udp.c net_tcp.c net_dot.c \
+	net_doh.c ext/parse_uri.c ext/hg64.c resperf.c
+am_resperf_OBJECTS = $(am__objects_2) resperf.$(OBJEXT)
+am__dist_resperf_SOURCES_DIST = datafile.h dns.h log.h net.h opt.h \
+	os.h util.h strerror.h list.h result.h buffer.h qtype.h edns.h \
+	tsig.h ext/parse_uri.h ext/hg64.h
+dist_resperf_OBJECTS = $(am__objects_4)
 resperf_OBJECTS = $(am_resperf_OBJECTS) $(dist_resperf_OBJECTS)
 resperf_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1) \
@@ -198,9 +215,9 @@ am__depfiles_remade = ./$(DEPDIR)/datafile.Po ./$(DEPDIR)/dns.Po \
 	./$(DEPDIR)/net.Po ./$(DEPDIR)/net_doh.Po \
 	./$(DEPDIR)/net_dot.Po ./$(DEPDIR)/net_tcp.Po \
 	./$(DEPDIR)/net_udp.Po ./$(DEPDIR)/opt.Po ./$(DEPDIR)/os.Po \
-	./$(DEPDIR)/parse_uri.Po ./$(DEPDIR)/qtype.Po \
-	./$(DEPDIR)/resperf.Po ./$(DEPDIR)/strerror.Po \
-	./$(DEPDIR)/tsig.Po
+	./$(DEPDIR)/qtype.Po ./$(DEPDIR)/resperf.Po \
+	./$(DEPDIR)/strerror.Po ./$(DEPDIR)/tsig.Po \
+	ext/$(DEPDIR)/hg64.Po ext/$(DEPDIR)/parse_uri.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -222,8 +239,9 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(dnsperf_SOURCES) $(dist_dnsperf_SOURCES) \
 	$(resperf_SOURCES) $(dist_resperf_SOURCES)
-DIST_SOURCES = $(dnsperf_SOURCES) $(dist_dnsperf_SOURCES) \
-	$(resperf_SOURCES) $(dist_resperf_SOURCES)
+DIST_SOURCES = $(am__dnsperf_SOURCES_DIST) \
+	$(am__dist_dnsperf_SOURCES_DIST) $(am__resperf_SOURCES_DIST) \
+	$(am__dist_resperf_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -440,12 +458,12 @@ AM_CFLAGS = -I$(srcdir) \
 
 EXTRA_DIST = dnsperf.1.in resperf-report resperf.1.in
 dist_bin_SCRIPTS = resperf-report
-_libperf_sources = datafile.c dns.c log.c net.c opt.c os.c strerror.c qtype.c \
-  edns.c tsig.c net_udp.c net_tcp.c net_dot.c net_doh.c parse_uri.c
-
-_libperf_headers = datafile.h dns.h log.h net.h opt.h os.h util.h strerror.h \
-  list.h result.h buffer.h qtype.h edns.h tsig.h parse_uri.h
-
+_libperf_sources = datafile.c dns.c log.c net.c opt.c os.c strerror.c \
+	qtype.c edns.c tsig.c net_udp.c net_tcp.c net_dot.c net_doh.c \
+	ext/parse_uri.c $(am__append_1)
+_libperf_headers = datafile.h dns.h log.h net.h opt.h os.h util.h \
+	strerror.h list.h result.h buffer.h qtype.h edns.h tsig.h \
+	ext/parse_uri.h $(am__append_2)
 dnsperf_SOURCES = $(_libperf_sources) dnsperf.c
 dist_dnsperf_SOURCES = $(_libperf_headers)
 dnsperf_LDADD = $(PTHREAD_LIBS) $(libssl_LIBS) $(libcrypto_LIBS) \
@@ -555,6 +573,15 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+ext/$(am__dirstamp):
+	@$(MKDIR_P) ext
+	@: > ext/$(am__dirstamp)
+ext/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ext/$(DEPDIR)
+	@: > ext/$(DEPDIR)/$(am__dirstamp)
+ext/parse_uri.$(OBJEXT): ext/$(am__dirstamp) \
+	ext/$(DEPDIR)/$(am__dirstamp)
+ext/hg64.$(OBJEXT): ext/$(am__dirstamp) ext/$(DEPDIR)/$(am__dirstamp)
 
 dnsperf$(EXEEXT): $(dnsperf_OBJECTS) $(dnsperf_DEPENDENCIES) $(EXTRA_dnsperf_DEPENDENCIES) 
 	@rm -f dnsperf$(EXEEXT)
@@ -601,6 +628,7 @@ uninstall-dist_binSCRIPTS:
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f ext/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -617,11 +645,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/net_udp.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/opt.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_uri.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qtype.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/resperf.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strerror.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tsig.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@ext/$(DEPDIR)/hg64.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@ext/$(DEPDIR)/parse_uri.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -893,6 +922,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f ext/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ext/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -916,11 +947,12 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/net_udp.Po
 	-rm -f ./$(DEPDIR)/opt.Po
 	-rm -f ./$(DEPDIR)/os.Po
-	-rm -f ./$(DEPDIR)/parse_uri.Po
 	-rm -f ./$(DEPDIR)/qtype.Po
 	-rm -f ./$(DEPDIR)/resperf.Po
 	-rm -f ./$(DEPDIR)/strerror.Po
 	-rm -f ./$(DEPDIR)/tsig.Po
+	-rm -f ext/$(DEPDIR)/hg64.Po
+	-rm -f ext/$(DEPDIR)/parse_uri.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -982,11 +1014,12 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/net_udp.Po
 	-rm -f ./$(DEPDIR)/opt.Po
 	-rm -f ./$(DEPDIR)/os.Po
-	-rm -f ./$(DEPDIR)/parse_uri.Po
 	-rm -f ./$(DEPDIR)/qtype.Po
 	-rm -f ./$(DEPDIR)/resperf.Po
 	-rm -f ./$(DEPDIR)/strerror.Po
 	-rm -f ./$(DEPDIR)/tsig.Po
+	-rm -f ext/$(DEPDIR)/hg64.Po
+	-rm -f ext/$(DEPDIR)/parse_uri.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
