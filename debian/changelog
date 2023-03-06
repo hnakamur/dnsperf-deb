@@ -1,3 +1,10 @@
+dnsperf (2.11.0-1ubuntu1ppa1~ubuntu22.04) jammy; urgency=medium
+
+  * New upstream version 2.11.0
+  * Update patch for 2.11.0
+
+ -- Hiroaki Nakamura <hnakamur@gmail.com>  Mon, 06 Mar 2023 22:46:10 +0900
+
 dnsperf (2.10.0-1ubuntu1ppa1~ubuntu22.04) jammy; urgency=medium
 
   * New upstream version 2.10.0
