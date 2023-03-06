@@ -1,0 +1,606 @@
+2021-12-08 Jerry Lundström
+
+    Release 2.9.0
+
+    This release brings a new message suppression option and a way to control
+    how many queries are sent over a connection.
+
+    You can now suppress the message about receiving unexpected DNS message
+    IDs by using `-O suppress=unexpected`.
+
+    With `-O num-queries-per-conn=<num>` you can now limit the number of
+    queries sent over a connection before triggering a re-connection, see
+    the `dnsperf(3)` man-page for more information how this works.
+
+    cd9df40 Tests
+    864a968 Queries per connection
+    7c5d6ab Suppress unexpected
+    8e9f4a2 Suppress
+
+2021-11-02 Jerry Lundström
+
+    Release 2.8.0
+
+    This release fixes response handling for DNS-over-HTTPS when multiple
+    responses are received within the same receive cycle, and adds a new
+    option to suppress some of the normal and verbose output.
+
+    The network model within dnsperf and resperf can not process more then
+    one response at a time from a protocol module, so a buffer has been added
+    to the DNS-over-HTTPS module to handle this situation (this already exists
+    in all other modules).
+
+    The new option `-O suppress=<message,...>` can selectively suppress parts
+    of the normal and verbose output. Some of these messages might be
+    excessively displayed due to the network model and depending on what
+    protocol you use which makes usage harder then necessary. For example
+    during TCP connection stage, if you end-point is slow to establish
+    connection you will get a lot of output saying that the socket isn't ready
+    yet.
+
+    6a452b0 DoH response handling
+    e2828e7 Suppress
+
+2021-09-17 Jerry Lundström
+
+    Release 2.7.1
+
+    This release fixes issues with constructing wire-format DNS when the
+    domain names includes escaped characters such as `\123` or `\.`.
+
+    Other changes:
+    - Bump Debian package compat level to 10
+
+    4873f02 DNS encoding
+    c4eccc0 debhelper
+
+2021-08-09 Jerry Lundström
+
+    Release 2.7.0
+
+    This release adds DNS-over-HTTPS support!
+
+    DNS-over-HTTPS can be used by specifying transport mode `doh` and you
+    should also look at the dnsperf(1) man-page (or `-H`) for the extended
+    options `doh-uri` and `doh-method`, which controls aspects of DoH/HTTP/2
+    that you might want to set.
+
+    Other fixes:
+    - Add check when constructing DNS packet so that total length of labels
+      does not exceed 255 bytes
+    - Fix connection/reconnection state handling for DoT transport
+    - Fix event handling by initializing them directly when opening the
+      sockets, otherwise events could have been missed which would give
+      incorrect statistics
+
+    61b5eac Tests with dumdumd
+    d71071c Tests with dumdumd
+    b42f92e DoH sending
+    2fa40bb Net stats
+    f7f8692 DoH fixes
+    ea62b49 DoH concurrent streams
+    91929f1 DoH reconnect
+    17660e6 DoH fixes
+    5276aa6 resperf buckets
+    585860e Packages
+    3ffc601 Fixes
+    1570609 Man-page
+    6bcadc7 README
+    f81adf1 Fixes
+    1acd71f Code structure
+    6c47876 Fixes
+    2d379f4 Fixes
+    4d5384b Fixes
+    cee93b3 Initial DNS-over-HTTPS support implementation
+    4ff3ebc Events
+    8b24bbf DoT state
+    6a5b5ef Fix too long name
+    71fa09f long opts
+
+2021-05-31 Jerry Lundström
+
+    Release 2.6.0
+
+    This release adds EDNS options parameter `-E` to `resperf` and a script
+    for generating EDNS Client Subnet options (see `contrib/ecs-gen`).
+
+    d29d880 ECS opt
+    877f31e edns option
+
+2021-03-25 Jerry Lundström
+
+    Release 2.5.2
+
+    This release tweaks the reconnect code for TCP and DoT.
+
+    For TCP, atomic operations are used to signal the need to reconnect
+    from the receiving thread to the sending, as the sending is the one in
+    charge of reconnecting.
+    This speeds up detection of connection lost which reduces the amount of
+    lost queries on a disconnect.
+
+    This change does not affect DoT as much, as the SSL context shared
+    between the threads are protected by a mutex.
+    But a bug was found in `sendto()` for DoT that could drop a query if
+    the socket was busy sending.
+
+    The connect and reconnect socket events has been split into connecting,
+    connected and reconnecting, reconnected. This is to report more correct
+    reconnect events when it comes to DoT, because the connection can be
+    lost while negotiating TLS.
+
+    Lastly, additional tests has been added for the network code.
+
+    d9e5663 net test
+    22f49df network tests
+    8e5b56e reconnect
+
+2021-03-22 Jerry Lundström
+
+    Release 2.5.1
+
+    This release re-adds support for TYPEnnn and ANY in the datafile, this
+    was missed during the removal of the dependency on BINDs development
+    libraries in v2.4.0.
+
+    Also note that with v2.5.0, this software now depends on Concurrency
+    Kit (ck) for atomic operations.
+
+    924e6ea ANY
+    0a444c0 TYPEnnn
+
+2021-03-12 Jerry Lundström
+
+    Release 2.5.0
+
+    This release adds re-connection support for TCP and DoT protocol,
+    new options to `resperf` and fixes a few bugs.
+
+    `dnsperf` and `resperf` will now try to re-connect when they lose a TCP
+    or DoT connection, and with that comes a few new statistics metrics.
+    For `dnsperf`, if a connection oriented protocol is used, it will now
+    show the total number of re-connections made and the connection latency.
+    For `resperf` it also shows the total number of re-connections made and
+    the gnuplot data now contains the total number of connections made and
+    the connection latency for each interval.
+    Beside re-connection support, improvements have been made when it comes
+    to tracking socket readiness while connections are established which
+    should generate less warnings about "socket not ready".
+
+    New `resperf` options:
+    - `-R`: Reopen the datafile if it runs out of data before the testing
+      is completed. This allows for long running tests on very small and
+      simple query datafile.
+    - `-F <fall_behind>`: Sets the maximum number of queries that can fall
+      behind being sent. `resperf` will stop when this many queries should
+      have been sent and it can be relative easy to hit if `-m <max_qps>`
+      is set too high.
+      The default is 1000 and setting it to zero (0) disables the check.
+
+    Bugfixes:
+    - Fixed port handling for host/network format when setting client side
+      port with `-x`
+    - Fix support for quoted characters, `\000` and `\.`, in domain names,
+      this was lost when removing BIND's internal development libraries
+    - Fix issue in `dnsperf`, it would loop forever if no connection could
+      be established
+    - Fix potential buffer overrun in `resperf` when using response id
+      for `queries[]`
+    - DoT: Fix bug when sending from buffer
+
+    Other changes:
+    - Always use `IPV6_V6ONLY` socket option for IPv6
+    - Add man-page on `-W` option added in v2.4.0
+    - Reformat man-pages
+    - `resperf`:
+      - Try and process more request each run to hopefully not hit max
+        outstanding so easy when high QPS
+      - Add default value to `-C` so it shows in help
+
+    9308361 man-page format
+    0e52fb4 man-page, opts, tuneups
+    e36211d stats
+    d9b9ba3 Response qid to index
+    2b2c37e fixes, reconnection
+    acd31e5 dname quote
+    de8f049 net
+
+2021-02-23 Jerry Lundström
+
+    Release 2.4.2
+
+    This release fixes a few issues with reading of the datafile which
+    could lead to "ran out of data" errors.
+
+    The problem was that reading from the datafile was done before finding
+    a socket to send it on, or socket readyness, and that lead to progressing
+    the queries without really doing anything.
+    Another issues that's been fixed was that if the read lines perfectly
+    aligned with the buffer, it would be treated like EOF and caused an exit.
+
+    9937287 resperf TLS
+    6736956 datafile
+    55faec6 ran out of data
+
+2021-02-09 Jerry Lundström
+
+    Release 2.4.1
+
+    This release fixes an issue with the socket readiness function that
+    could cause a buffer overflow (`-T 10 -c 2000`) due to `select()` being
+    limited to check 1023 sockets. `poll()` is now used which has no limit.
+
+    There has also been a few fixes to the contrib script `queryparse` that
+    has to do with python v2 and v3 compatibility and better exception
+    handling.
+
+    24e5bee poll
+    7dceca7 Handle only common exceptions
+    5603294 Fix error on python3
+    48fa517 TSIG
+
+2020-12-09 Jerry Lundström
+
+    Release 2.4.0
+
+    This release removes the dependency on BIND's internal development
+    libraries! This make building and packaging a lot easier and less
+    troublesome in the future.
+
+    This software now depends only on OpenSSL (for TSIG feature) with an
+    optional depend on LDNS (for dynamic updates feature).
+
+    New option:
+    - Transport mode option `-m`/`-M` now recognizes `dot` alongside `tls`
+      for encrypted DNS
+    - Added `-W` for outputting warnings and errors to stdout
+
+    Other changes / bugfixes:
+    - Fix potential memory leak of query descriptions when using verbose
+    - Only use TLS v1.2 and above for DoT/TLS
+    - Add a lot of tests
+    - Add coverage testing
+
+    d17743b datafile
+    434bbf2 Checks, coverage, log, test IPv6
+    9fb305f Coverage
+    123ebf1 DOT, TLS version, Sonarcloud
+    26df0bd BIND dependency
+    ee660e7 Sonarcloud
+    c9ea0ab base64
+    4e9be82 TSIG
+    4275045 EDNS, https
+    7c3f51c BIND dependency
+    6e1be5d ISC dependencies
+    e36f19d Buffer
+    485cdd2 ISC mem, tests
+    663dc24 Namespace clash
+    2c44987 dynamic updates, edns, headers
+    5d109b2 Disable HMAC
+    79cae93 datafile, query desc
+    663d814 net
+    c867de6 isc_result_t
+    651ee5d opt
+    7d30804 isc_result_t
+    58ad313 ISC linked list
+    7b4da6d Info
+    8079ebc Tests
+    e3fb685 Tests
+    2bb603a Tests
+    297b23b Test
+    c4e244b Test
+    1caac35 Makefile
+    e9f2aaa Coverage
+    27af853 Fix typo in configure.ac
+    521faa6 Badges
+    8fa2ec4 LGTM
+    75c89e5 COPR
+
+2020-05-15 Jerry Lundström
+
+    Release 2.3.4
+
+    This release adds a workaround, thanks to patch from Petr Menšík, for
+    building on systems with BIND 9.16. Also improves error handling by
+    using thread-safe `strerror_r()` instead of `strerror()`.
+
+    88c3ef4 strerror
+    1917f67 openSUSE Tumbleweed
+    fd39641 AS_VAR_APPEND
+    aeeef74 bind 9.16
+    07732cd BIND, libcrypto, clang format
+    08146e3 Add crypto library to checks
+    e4307c2 Add checks to pass with BIND 9.16
+    3f9aed3 Prepare check for bind 9.11/9.16 return types
+
+2020-05-06 Jerry Lundström
+
+    Release 2.3.3
+
+    This release changes the behavior of `dnsperf` and `resperf` when it
+    comes to TCP and TLS connections, and updates package building using
+    COPR (thanks to patch from Petr Menšík (Red Hat)).
+
+    Connection reset or close are now treated as "try again" so that the
+    run is finished and not aborted. As SIGPIPE might be received on usage
+    of closed connections it's now blocked in `dnsperf` and handled as
+    a fatal action in `resperf`.
+
+    62885ad SIGPIPE
+    106c50e connection
+    3ef0899 README
+    61a3b1c COPR
+    35efa27 COPR
+    46b37a1 COPR
+    5c126ae COPR
+    1c51b76 Provide full URL in spec
+    2a4dd0e Allow recreation of source archive
+    931d6cc Do not require root for archive creation
+
+2019-08-23 Jerry Lundström
+
+    Release 2.3.2
+
+    This release fixes a buffer overflow when using TSIG and algorithms
+    with digests larger then SHA256, reported by Mukund Sivaraman. Also
+    fix build dependencies for `sqrt()`.
+
+    e54aa58 Digest
+    bca5d8d sqrt
+    d9eaa5b Package
+
+2019-07-24 Jerry Lundström
+
+    Release 2.3.1
+
+    After a report and additional confirming results the use of `poll()` in
+    the network receive code for TCP and TLS has been removed. This `poll()`
+    initially gave better results while testing in a docker container on
+    it's loopback interface but when on physical networks it reduced
+    performance to 1/12th, so it had to go.
+
+    Thanks to Brian Wellington (Akamai/Nominum) for the initial report and
+    testing, and to Jan Hák (CZ.NIC) for testing and confirming the results.
+
+    Bugfix:
+    - Fix check for having more DNS messages in the receive buffer for TCP
+      and TLS
+
+    670db9c TCP/TLS receive
+    b8925b2 recvbuf have more
+
+2019-07-17 Jerry Lundström
+
+    Release 2.3.0
+
+    This release adds support for DNS over TCP and TLS which can be selected
+    by using the mode option for `dnsperf` and `resperf`. The default server
+    port used is now determined by the transport mode, udp/tcp port 53 and
+    tls port 853.
+
+    Note that the mode option is different between the program because it was
+    already taken for `resperf`.
+
+    `dnsperf` changes:
+    - Add `-m` for setting transport mode, `udp` (default), `tcp` or `tls`
+    - Add verbose messages about network readiness and congestion
+
+    `resperf` changes:
+    - Add `-M` for setting transport mode, `udp` (default), `tcp` or `tls`
+    - Add `-v` for verbose mode to report about network readiness and
+      congestion
+
+    ffa49cf LGTM, SonarCloud
+    4cd5441 TLS
+    35624d1 TCP send, socket ready loop
+    fbf76aa TCP support
+    5988b06 Funding
+
+2019-01-28 Jerry Lundström
+
+    Release 2.2.1
+
+    The commit pulled from a fork that used `inttypes.h`, instead of ISC
+    internal types, missed to remove the old conversion specifier.
+    This was reported and fixed by Vladimír Čunát.
+
+    9534ce1 remove visible "u" characters after numbers
+
+2019-01-25 Jerry Lundström
+
+    Release 2.2.0
+
+    First release by DNS-OARC with a rework of the code to use autotools,
+    semantic versioning 2.0 and bugfixes pulled from other's forks.
+
+    Bugfixes:
+    - Fix infinite loop in argument parsing
+    - Fix min/max latency summing for multithreaded runs
+    - Fix calculation of per_thread socket counts
+    - Fixes to queryparse
+      - Mark correctly end of file
+      - Support python3
+      - Stop looping on end of file undefinitely
+    - Fix compilation issues and work around missing `dns_fixedname_initname()`
+    - Clang `scan-build` fixes
+
+    Other changes:
+    - add "configure --with-bind" option
+    - Handle bind library changes to HMAC (see #22) and other differences
+      between versions
+    - Workaround issue on FreeBSD (see #23)
+    - Use `snprintf()` and OpenBSD's `strlcat()`
+    - Add/update build dependencies for Debia, Ubuntu, CentOS, FreeBSD
+      and OpenBSD
+
+    ae9bc91 Clang format
+    b9bb085 CI, buildbot
+    b84e41b Autotools, README, changelog
+    a2e1732 License
+    9dcb661 Remove $Id markers, Principal Author and Reviewed tags from the
+            full source tree
+    0677bf0 Use dns_fixedname_initname() where possible
+    d8d4696 [master] add "configure --with-bind" option to dnsperf
+    b71a280 Add deb based distros dependencies
+    439c614 Replace custom isc_boolean_t with C standard bool type
+    407ae7c Replace custom isc_u?intNN_t types with C99 u?intNN_t types
+    c27afd4 Replace ISC_PRINT_QUADFORMAT with inttypes.h format constants
+    6fdb2f7 Fix queryparse
+    4909b78 README
+    2782d50 README.md: Rectify link to software
+    e31ddf4 fix calculation of per_thread socket counts
+    3bd7fb4 Fix min/max latency summing for multithreaded runs
+    2207e27 Fix infinite loop in argument parsing.
+    3bfe97a Include the github URL; remove the bug reports section.
+    0cee04a Add note about bug reports.
+    62c4b32 add .gitignore
+    c45f0be Initial import.
+    149172b Initial commit
+
+2015-12-15
+
+    Release 2.1.0.0
+
+    In addition to various bug fixes, the following new capabilities
+    were added in this release:
+    - The `-C` option was added to `resperf`. This option enables the local
+      server to act as multiple clients.  By default, the local server
+      acts as a single client.
+    - the `-T` option was added to `dnsperf`. This option separates the
+      number of clients from the number of threads and allows more
+      clients to be simulated effectively.  Note that using this option
+      impacts CPU and memory, so we recommend limiting the number of
+      threads.
+
+2012-03-01
+
+    Release 2.0.0.0
+
+    In the `dnsperf` command, the following changes occurred:
+    - The socket buffer size is no longer set to 32 kilobytes by default.
+    - A new `-c clients` option was added to enable the server to act as
+      multiple clients. Each client uses the same source IP address with a
+      unique source port. Use the `clients` argument to specify the number of
+      clients represented by the server. We recommend limiting the number of
+      clients represented by the server because the `dnsperf` process uses two
+      threads for each client (one thread for sent packets and one for
+      received packets), which impacts CPU and memory.
+    - Example query files are no longer included with the `dnsperf` program.
+      Nominum provides a sample query file that is available for download at:
+      ftp://ftp.nominum.com/pub/nominum/dnsperf/data/
+    - Latency reporting improved. When the `-v` (verbose mode) option is
+      configured with the `dnsperf` command, the command output now includes
+      latency measurements and the DNS RCODE of each response. This enables
+      users to create their own latency graphs.
+    - Performance was enhanced on modern operating systems so that faster
+      name servers can be tested.
+    - The `dnsperf` command output is enhanced to display more information in a
+      compact format.
+
+    The following options were removed from the `dnsperf` command:
+    - The `-A` option for displaying command line arguments passed to the
+      `dnsperf` tool in the final statistics output. Now, the `dnsperf` command
+      output always displays command line arguments.
+    - The `-T` option for printing a histogram showing response latency after
+      completing a test run. Now, the `-v` option enables users to include
+      latency measurements in the `dnsperf` command output.
+    - The `-H` option for configuring the number of buckets for which response
+      latency is displayed. Now, the `-v` option enables users to include
+      latency measurements in the `dnsperf` command output.
+    - The `-1` option for configuring the `dnsperf` tool to run through the input
+      file exactly one time. (Now, you use the `-n 1` option to configure the
+      `dnsperf` tool to run through the input file one time.)
+    - The `-c` option for including the number of responses received (for
+      each DNS RCODE) in the final statistics output. Now, DNS RCODE responses
+      are always reported.
+
+    In the `resperf` command, the following changes occurred:
+    - The socket buffer size is no longer set to 32 kilobytes by default.
+    - The `-A` option, which displayed command line arguments passed to the
+      `resperf` tool in the final statistics output, was removed. Now, the
+      `resperf` command output always displays command line arguments.
+
+2011-12-22
+
+    Release 1.0.2.0
+
+    This release adds support for RHEL6-64 and for Solaris 10 x86-64.
+
+    Some new configuration options have been added. You can now specify:
+	- the local port from which to send requests
+	- the local address from which to send requests
+	- the maximum number of runs through the input file, up
+	  to the timeout limit.
+	- when using TSIG, algorithms other than hmac-md5 can be used.
+
+    One default has been changed:
+	- The maximum number of outstanding requests now defaults
+	  to 100.
+
+    A new example query file for IPv6, `queryfile-example-ipv6`, is now
+    included with the distribution.
+
+2008-01-10
+
+    Release 1.0.1.0
+
+    This release makes binary builds of `dnsperf` available in addition to
+    the source code version previously released.
+
+    This release of `dnsperf` includes a sample query file containing
+    100,000 queries to help with performance testing.  This query file is
+    useful for checking latencies or a continuous `dnsperf` run. In the
+    binary distribution, this file is found at:
+
+        /usr/local/nom/examples/dnsperf/queryfile-example-100thousand
+
+    In the source distribution, it is at:
+
+        ./examples/queryfile-example-100thousand
+
+    where `.` is the directory made by extracting the source tarball.
+
+    Nominum recommends using a query file with at least 3 million queries
+    for a full `resperf` run as described in the man page; we make such a
+    file available for download at:
+
+        ftp://ftp.nominum.com/pub/nominum/dnsperf/data/queryfile-example-3million.gz
+
+    The following fix is included in the source distribution:
+    - 20996: `makefile.in` does not allow overriding `mandir`
+      The `--mandir` argument to `configure`, which allows the user to
+      specify the location man pages are installed, was incorrectly
+      ignored.
+
+    `queryparse` is a contributed program available in the source
+    distribution of `dnsperf`. It can be found at `contrib/queryparse/`.
+    The following changes were made to that program:
+    - 19717: `contrib/queryparse` includes outgoing queries
+      The `queryparse` script had no way of distinguishing between incoming
+      queries and outgoing queries when applied to a traffic trace from a
+      caching server. This was addressed by adding a new flag (`-r`) that,
+      when included in the command line, will keep queries with
+      `RD=0`. Otherwise, it will default to discarding them.
+    - The ability to parse responses instead of queries was added.
+    - A check was added to avoid short packets.
+    - Logic was added to detect link type and correctly set the initial
+      offset to handle both Ethernet and Cisco HDLC frames.
+    - `queryparse` now uses `pcapy` instead of the `btk` python `libcap` module.
+
+    Note that announcements of new releases of `dnsperf` are sent to the
+    mailing list: dnsperf-announce@nominum.com.  To be added to the
+    mailing list, send a message to dnsperf-announce-request@nominum.com
+    with "subscribe" as the subject.
+
+    Known Issues:
+    - None.
+
+2006-12-21
+
+    Release 1.0.0.1
+
+    This release addresses the following issue in the `dnsperf` program:
+    - 18838/18782: `dnsperf` slow down issue
+      Because of an error in how timeout checking was being done, queries
+      were rarely timing out, so the number of valid queries in flight kept
+      dropping.  This error has been corrected.
