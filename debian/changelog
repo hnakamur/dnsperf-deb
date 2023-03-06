@@ -1,3 +1,9 @@
+dnsperf (2.9.0-1ubuntu1ppa1~ubuntu22.04) jammy; urgency=medium
+
+  * Add debian/gbp.conf
+
+ -- Hiroaki Nakamura <hnakamur@gmail.com>  Mon, 06 Mar 2023 21:49:42 +0900
+
 dnsperf (2.9.0-1) sid; urgency=medium
 
   * Uploading to sid.
